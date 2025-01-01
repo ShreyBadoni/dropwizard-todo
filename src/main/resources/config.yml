@@ -1,0 +1,17 @@
+---
+server:
+  applicationConnectors:
+    - type: http
+      port: 8080
+  adminConnectors:
+    - type: http
+      port: 8081
+logging:
+  level: INFO
+  loggers:
+    com.codeflu: DEBUG
+  appenders:
+    - type: console
+      threshold: ALL
+      target: stdout
+appName: TodoListApp
