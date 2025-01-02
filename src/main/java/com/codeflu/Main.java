@@ -1,38 +1,49 @@
 package com.codeflu;
 
-import com.codeflu.api.TaskResource;
-import com.codeflu.api.SampleResource; // New SampleResource import
+import com.codeflu.models.Task;
+import com.codeflu.dao.TaskDAO;
 import com.codeflu.services.TaskService;
-import io.dropwizard.configuration.ResourceConfigurationSourceProvider;
+import com.codeflu.api.TaskResource;
 import io.dropwizard.core.Application;
 import io.dropwizard.core.setup.Bootstrap;
 import io.dropwizard.core.setup.Environment;
+import io.dropwizard.hibernate.HibernateBundle;
+import io.dropwizard.db.DataSourceFactory;
 
 public class Main extends Application<AppConfiguration> {
 
-    public static void main(String[] args) throws Exception {
-        new Main().run(args);
-    }
+    private final HibernateBundle<AppConfiguration> hibernateBundle =
+            new HibernateBundle<AppConfiguration>(Task.class) {
+                @Override
+                public DataSourceFactory getDataSourceFactory(AppConfiguration configuration) {
+                    return configuration.getDataSourceFactory();
+                }
+
+                @Override
+                protected void configure(org.hibernate.cfg.Configuration configuration) {
+                    configuration.setProperty("hibernate.hbm2ddl.auto", "update");
+                }
+            };
+
 
     @Override
     public void initialize(Bootstrap<AppConfiguration> bootstrap) {
-        // Allows configuration to be loaded from resources directory
-        bootstrap.setConfigurationSourceProvider(new ResourceConfigurationSourceProvider());
-        super.initialize(bootstrap);
+        bootstrap.addBundle(hibernateBundle);
     }
 
     @Override
     public void run(AppConfiguration configuration, Environment environment) {
-        // Initialize TaskService
-        TaskService taskService = new TaskService();
+        // Initialize DAO and Service
+        TaskDAO taskDAO = new TaskDAO(hibernateBundle.getSessionFactory());
+        TaskService taskService = new TaskService(taskDAO);
 
-        // Register TaskResource for TODO APIs
+        // Register Resource
         environment.jersey().register(new TaskResource(taskService));
 
-        // Register SampleResource for testing
-        environment.jersey().register(new SampleResource()); // New test endpoint
+        System.out.println("Application started!");
+    }
 
-        // Print confirmation in logs
-        System.out.println("TODO List application started...");
+    public static void main(String[] args) throws Exception {
+        new Main().run(args);
     }
 }

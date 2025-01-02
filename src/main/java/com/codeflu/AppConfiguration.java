@@ -1,21 +1,24 @@
 package com.codeflu;
 
 import io.dropwizard.core.Configuration;
+import io.dropwizard.db.DataSourceFactory;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 
 public class AppConfiguration extends Configuration {
 
-    @NotEmpty
-    private String appName;
+    @Valid
+    @NotNull
+    private DataSourceFactory database = new DataSourceFactory();
 
-    @JsonProperty
-    public String getAppName() {
-        return appName;
+    @JsonProperty("database")
+    public DataSourceFactory getDataSourceFactory() {
+        return database;
     }
 
-    @JsonProperty
-    public void setAppName(String appName) {
-        this.appName = appName;
+    @JsonProperty("database")
+    public void setDataSourceFactory(DataSourceFactory database) {
+        this.database = database;
     }
 }

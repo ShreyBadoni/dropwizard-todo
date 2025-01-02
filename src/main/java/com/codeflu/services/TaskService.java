@@ -1,52 +1,40 @@
 package com.codeflu.services;
 
 import com.codeflu.models.Task;
+import com.codeflu.dao.TaskDAO;
 
 import java.time.LocalDate;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 public class TaskService {
 
-    // In-memory task storage (replaceable with a database later)
-    private final Map<UUID, Task> taskMap = new HashMap<>();
+    private final TaskDAO taskDAO;
 
-    // Create a new task
-    public Task createTask(String description, LocalDate startDate, LocalDate targetDate) {
-        Task task = new Task(description, startDate, targetDate, Task.Status.TODO);
-        taskMap.put(task.getId(), task);
-        return task;
+    public TaskService(TaskDAO taskDAO) {
+        this.taskDAO = taskDAO;
     }
 
-    // Get all tasks
     public List<Task> getAllTasks() {
-        return new ArrayList<>(taskMap.values());
+        return taskDAO.findAll();
     }
 
-    // Get a task by ID
+    public Task createTask(String description, LocalDate startDate, LocalDate targetDate, Task.Status status) {
+        Task task = new Task(description, startDate, targetDate, status);
+        return taskDAO.create(task);
+    }
+
     public Optional<Task> getTaskById(UUID id) {
-        return Optional.ofNullable(taskMap.get(id));
+        return taskDAO.findById(id);
     }
 
-    // Update a task
-    public Optional<Task> updateTask(UUID id, String description, LocalDate startDate, LocalDate targetDate, Task.Status status) {
-        if (!taskMap.containsKey(id)) {
-            return Optional.empty();
-        }
-        Task task = taskMap.get(id);
-        task.setDescription(description);
-        task.setStartDate(startDate);
-        task.setTargetDate(targetDate);
-        task.setStatus(status);
-        return Optional.of(task);
-    }
-
-    // Delete a task
     public boolean deleteTask(UUID id) {
-        if (!taskMap.containsKey(id)) {
-            return false;
+        Optional<Task> task = taskDAO.findById(id);
+        if (task.isPresent()) {
+            taskDAO.delete(task.get());
+            return true;
         }
-        taskMap.remove(id);
-        return true;
+        return false;
     }
 }

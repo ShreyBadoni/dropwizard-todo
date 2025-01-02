@@ -1,40 +1,54 @@
 package com.codeflu.models;
 
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
-
+import jakarta.persistence.*;
 import java.time.LocalDate;
 import java.util.UUID;
 
+@Entity
+@Table(name = "tasks")
 public class Task {
 
-    private final UUID id; // Unique Task ID
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    @Column(length = 36, nullable = false, unique = true)
+    private UUID id;
 
-    @NotNull
-    @Size(min = 1, message = "Description cannot be empty")
-    private String description; // Task description
+    @Column(nullable = false)
+    private String description;
 
-    @NotNull
-    private LocalDate startDate; // Start date of the task
+    @Column(name = "start_date", nullable = false)
+    private LocalDate startDate;
 
-    @NotNull
-    private LocalDate targetDate; // Target completion date
+    @Column(name = "target_date", nullable = false)
+    private LocalDate targetDate;
 
-    @NotNull
-    private Status status; // Status of the task (TODO, WIP, DONE)
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private Status status;
 
-    // Constructor
+    @Version // Enables optimistic locking
+    @Column(name = "version", nullable = false)
+    private int version;
+
+    public enum Status {
+        TODO, WIP, DONE
+    }
+
+    public Task() {}
+
     public Task(String description, LocalDate startDate, LocalDate targetDate, Status status) {
-        this.id = UUID.randomUUID(); // Generate a unique ID
         this.description = description;
         this.startDate = startDate;
         this.targetDate = targetDate;
         this.status = status;
     }
 
-    // Getters and Setters
     public UUID getId() {
         return id;
+    }
+
+    public void setId(UUID id) {
+        this.id = id;
     }
 
     public String getDescription() {
@@ -69,10 +83,11 @@ public class Task {
         this.status = status;
     }
 
-    // Enum for Task Status
-    public enum Status {
-        TODO,
-        WIP,
-        DONE
+    public int getVersion() {
+        return version;
+    }
+
+    public void setVersion(int version) {
+        this.version = version;
     }
 }
